@@ -38,7 +38,7 @@ function SpendingPieChart({ summaries }: SpendingPieChartProps) {
   }
 
   return (
-    <section className="panel chart-panel" aria-labelledby="chart-title">
+    <section className="panel chart-panel" aria-label="이번 주 소비 비율 원그래프">
       <div className="section-heading">
         <p className="eyebrow">소비 비율</p>
         <h2 id="chart-title">이번 주 카테고리</h2>

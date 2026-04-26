@@ -49,6 +49,10 @@ test('adds a receipt and updates the weekly category summary', async () => {
   const user = setupUser()
   render(<App />)
 
+  expect(
+    screen.getByRole('region', { name: '이번 주 소비 비율 원그래프' }),
+  ).toBeInTheDocument()
+
   await addReceipt(user, '떡볶이', '3000', 'snack')
 
   expect(screen.getByText('떡볶이')).toBeInTheDocument()
@@ -57,6 +61,18 @@ test('adds a receipt and updates the weekly category summary', async () => {
   expect(screen.getByRole('status')).toHaveTextContent(
     '떡볶이 3,000원을 기록했습니다',
   )
+})
+
+test('shows an item name validation message and does not create a receipt', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await user.type(screen.getByLabelText('금액'), '1200')
+  await user.click(screen.getByRole('button', { name: '기록하기' }))
+
+  expect(screen.getByText('내용을 입력하세요.')).toBeInTheDocument()
+  expect(screen.queryByText('1,200원')).not.toBeInTheDocument()
+  expect(screen.getByText('아직 기록한 영수증이 없습니다.')).toBeInTheDocument()
 })
 
 test('loads saved records after rerender', async () => {

@@ -37,7 +37,7 @@ function EntryForm({ onSubmit }: EntryFormProps) {
       !Number.isFinite(numericAmount) || numericAmount < 1
         ? '금액은 1원 이상 입력하세요.'
         : ''
-    const nextItemError = item.trim() === '' ? '쓴 내용을 입력하세요.' : ''
+    const nextItemError = item.trim() === '' ? '내용을 입력하세요.' : ''
 
     setAmountError(nextAmountError)
     setItemError(nextItemError)
