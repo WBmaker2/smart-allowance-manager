@@ -1,6 +1,6 @@
 :root {
   color: #213547;
-  background: #f7f3ea;
+  background: #edf5f2;
   font-family:
     Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -26,39 +26,361 @@ select {
   font: inherit;
 }
 
-.app-shell {
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  padding: 32px 20px;
+button {
+  cursor: pointer;
 }
 
-.intro-panel {
-  width: min(100%, 720px);
-  border: 1px solid #d9cfc0;
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.35);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  width: min(100%, 1180px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 28px 20px 40px;
+}
+
+.hero-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: end;
+  border: 1px solid #c8dad6;
   border-radius: 8px;
-  background: #fffdf8;
-  padding: clamp(28px, 6vw, 56px);
-  box-shadow: 0 18px 50px rgba(67, 54, 36, 0.12);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(238, 248, 246, 0.96)),
+    #f5fbfa;
+  padding: clamp(24px, 5vw, 44px);
+  box-shadow: 0 18px 42px rgba(33, 67, 58, 0.11);
 }
 
 .eyebrow {
-  margin: 0 0 12px;
-  color: #287062;
-  font-size: 0.9rem;
-  font-weight: 700;
+  margin: 0 0 8px;
+  color: #0f766e;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+h1,
+h2,
+p {
+  overflow-wrap: anywhere;
 }
 
 h1 {
+  max-width: 760px;
   margin: 0;
-  color: #1f2d2a;
-  font-size: clamp(2rem, 5vw, 3.8rem);
-  line-height: 1.12;
+  color: #1d2b28;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.1;
 }
 
 h1 + p {
-  margin: 20px 0 0;
+  max-width: 640px;
+  margin: 16px 0 0;
   color: #52605b;
-  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-size: 1.08rem;
   line-height: 1.7;
+}
+
+.hero-total {
+  display: grid;
+  gap: 2px;
+  min-width: 180px;
+  border: 1px solid #c9dacd;
+  border-radius: 8px;
+  background: #eef8ef;
+  padding: 18px;
+}
+
+.hero-total span {
+  color: #42635b;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.hero-total strong {
+  color: #166534;
+  font-size: 1.55rem;
+}
+
+.app-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.88fr) minmax(320px, 1.12fr);
+  gap: 18px;
+  margin-top: 18px;
+  align-items: start;
+}
+
+.panel {
+  border: 1px solid #d2dfdc;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 22px;
+  box-shadow: 0 12px 28px rgba(33, 67, 58, 0.08);
+}
+
+.form-panel,
+.insight-panel {
+  grid-column: 1;
+}
+
+.chart-panel,
+.receipt-panel {
+  grid-column: 2;
+}
+
+.section-heading {
+  margin-bottom: 18px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: #21312e;
+  font-size: 1.35rem;
+}
+
+.entry-form {
+  display: grid;
+  gap: 16px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.9fr);
+  gap: 12px;
+}
+
+.field-group {
+  display: grid;
+  gap: 7px;
+}
+
+.field-group label {
+  color: #354541;
+  font-size: 0.94rem;
+  font-weight: 800;
+}
+
+.field-group input,
+.field-group select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #c9d7d3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2d2a;
+  padding: 10px 12px;
+}
+
+.form-error {
+  margin: 0;
+  color: #b42318;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.primary-button,
+.clear-button,
+.receipt-actions button {
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.primary-button {
+  min-height: 48px;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.primary-button:hover {
+  background: #1d4ed8;
+}
+
+.chart-wrap {
+  height: 260px;
+  margin: 4px 0 16px;
+}
+
+.summary-list,
+.receipt-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.summary-list {
+  display: grid;
+  gap: 9px;
+}
+
+.summary-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #33433f;
+  font-weight: 800;
+}
+
+.summary-swatch {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border-radius: 999px;
+}
+
+.insight-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.insight-list p {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  border-bottom: 1px dashed #d2dfdc;
+  padding-bottom: 10px;
+}
+
+.insight-list strong {
+  color: #1d2b28;
+  font-weight: 900;
+  text-align: right;
+}
+
+.reflection-text {
+  margin: 18px 0 0;
+  border-radius: 8px;
+  background: #eef8ef;
+  color: #23443a;
+  line-height: 1.7;
+  padding: 14px;
+}
+
+.receipt-list {
+  display: grid;
+  gap: 10px;
+}
+
+.receipt-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px dashed #d2dfdc;
+  border-radius: 8px;
+  background: #f8fbff;
+  padding: 14px;
+}
+
+.receipt-item div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.receipt-item time,
+.receipt-item span {
+  color: #60706b;
+  font-size: 0.9rem;
+}
+
+.receipt-item strong {
+  color: #1f2d2a;
+  font-size: 1.08rem;
+}
+
+.receipt-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.receipt-amount {
+  color: #1d2b28;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.receipt-actions button {
+  min-height: 36px;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0 12px;
+}
+
+.receipt-actions button:hover {
+  background: #fecaca;
+}
+
+.empty-text {
+  margin: 0;
+  color: #60706b;
+  line-height: 1.7;
+}
+
+.clear-button {
+  display: block;
+  margin: 18px auto 0;
+  border: 1px solid #d2dfdc;
+  background: #ffffff;
+  color: #354541;
+  padding: 10px 16px;
+}
+
+.clear-button:hover {
+  background: #eef8f6;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding: 18px 14px 30px;
+  }
+
+  .hero-panel,
+  .app-grid,
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-total,
+  .form-panel,
+  .insight-panel,
+  .chart-panel,
+  .receipt-panel {
+    grid-column: 1;
+  }
+
+  .receipt-item,
+  .receipt-actions,
+  .insight-list p {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .receipt-actions {
+    gap: 8px;
+  }
+
+  .chart-wrap {
+    height: 230px;
+  }
 }
