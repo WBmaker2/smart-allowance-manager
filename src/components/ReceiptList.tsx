@@ -21,6 +21,12 @@ const categoryLabelById = new Map(
 
 function ReceiptList({ entries, onDelete }: ReceiptListProps) {
   const sortedEntries = [...entries].sort((left, right) => {
+    const dateComparison = right.date.localeCompare(left.date)
+
+    if (dateComparison !== 0) {
+      return dateComparison
+    }
+
     return (
       new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
     )

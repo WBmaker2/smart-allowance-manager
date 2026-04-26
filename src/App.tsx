@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import EntryForm, { type EntryFormValues } from './components/EntryForm'
 import ReceiptList from './components/ReceiptList'
 import SpendingPieChart from './components/SpendingPieChart'
@@ -14,13 +14,54 @@ import { clearEntries, loadEntries, saveEntries } from './lib/storage'
 
 const formatCurrency = (amount: number) => `${amount.toLocaleString('ko-KR')}원`
 
+const getDateKey = (date = new Date()) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+const getLocalDateFromKey = (dateKey: string) => {
+  const [year, month, day] = dateKey.split('-').map(Number)
+
+  return new Date(year, month - 1, day)
+}
+
+const getDelayUntilNextDateKey = () => {
+  const now = new Date()
+  const nextDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+  )
+
+  return Math.max(nextDay.getTime() - now.getTime() + 1000, 1000)
+}
+
 function App() {
   const [entries, setEntries] = useState<AllowanceEntry[]>(() => loadEntries())
   const [statusMessage, setStatusMessage] = useState('')
+  const [referenceDateKey, setReferenceDateKey] = useState(() => getDateKey())
+
+  useEffect(() => {
+    let timeoutId: number
+
+    const scheduleDateRefresh = () => {
+      timeoutId = window.setTimeout(() => {
+        setReferenceDateKey(getDateKey())
+        scheduleDateRefresh()
+      }, getDelayUntilNextDateKey())
+    }
+
+    scheduleDateRefresh()
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
 
   const weeklyEntries = useMemo(
-    () => filterEntriesForWeek(entries, new Date()),
-    [entries],
+    () => filterEntriesForWeek(entries, getLocalDateFromKey(referenceDateKey)),
+    [entries, referenceDateKey],
   )
   const categorySummaries = useMemo(
     () => summarizeByCategory(weeklyEntries),
