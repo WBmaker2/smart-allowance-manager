@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="스마트 용돈 기입장">
+  <rect width="64" height="64" rx="14" fill="#fff7ed"/>
+  <path d="M18 13h28a4 4 0 0 1 4 4v34a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4z" fill="#ffffff" stroke="#2563eb" stroke-width="4"/>
+  <path d="M23 25h18M23 34h18M23 43h10" stroke="#1f2937" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="45" cy="43" r="8" fill="#22c55e"/>
+  <path d="M42 43h6" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+</svg>
