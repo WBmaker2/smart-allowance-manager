@@ -21,7 +21,13 @@ const isStorageEntry = (value: unknown): value is AllowanceEntry => {
 }
 
 export function loadEntries(): AllowanceEntry[] {
-  const storedEntries = localStorage.getItem(STORAGE_KEY)
+  let storedEntries: string | null
+
+  try {
+    storedEntries = localStorage.getItem(STORAGE_KEY)
+  } catch {
+    return []
+  }
 
   if (storedEntries === null) {
     return []
@@ -41,9 +47,17 @@ export function loadEntries(): AllowanceEntry[] {
 }
 
 export function saveEntries(entries: AllowanceEntry[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+  } catch {
+    return
+  }
 }
 
 export function clearEntries(): void {
-  localStorage.removeItem(STORAGE_KEY)
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    return
+  }
 }
