@@ -35,7 +35,7 @@ const addReceipt = async (
 
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true })
-  vi.setSystemTime(new Date('2026-04-26T12:00:00+09:00'))
+  vi.setSystemTime(new Date(2026, 3, 26, 12, 0, 0))
   localStorage.clear()
 })
 
