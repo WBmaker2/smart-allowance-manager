@@ -13,7 +13,7 @@ test('saves and loads allowance entries', () => {
     date: '2026-04-26',
   })
 
-  saveEntries([entry])
+  expect(saveEntries([entry])).toBe(true)
 
   expect(loadEntries()).toEqual([entry])
 })
@@ -52,7 +52,30 @@ test('drops incompatible records while keeping valid entries unchanged', () => {
       validEntry,
       { ...validEntry, id: undefined },
       { ...validEntry, amount: Number.POSITIVE_INFINITY },
+      { ...validEntry, categoryId: 'unknown' },
+      { ...validEntry, date: '2026-02-31' },
       { ...validEntry, createdAt: 123 },
+      { ...validEntry, createdAt: 'not-a-date' },
+    ]),
+  )
+
+  expect(loadEntries()).toEqual([validEntry])
+})
+
+test('drops entries with malformed date strings while keeping valid entries', () => {
+  const validEntry = createAllowanceEntry({
+    item: '저금',
+    amount: 2000,
+    categoryId: 'saving',
+    date: '2026-04-26',
+  })
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([
+      { ...validEntry, id: 'bad-date-text', date: 'not-a-date' },
+      { ...validEntry, id: 'bad-date-shape', date: '2026-4-26' },
+      validEntry,
     ]),
   )
 
@@ -60,16 +83,16 @@ test('drops incompatible records while keeping valid entries unchanged', () => {
 })
 
 test('clears entries', () => {
-  saveEntries([
+  expect(saveEntries([
     createAllowanceEntry({
       item: '저금',
       amount: 2000,
       categoryId: 'saving',
       date: '2026-04-26',
     }),
-  ])
+  ])).toBe(true)
 
-  clearEntries()
+  expect(clearEntries()).toBe(true)
 
   expect(loadEntries()).toEqual([])
 })
@@ -86,7 +109,7 @@ test('does not throw when localStorage setItem throws', () => {
     throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
   })
 
-  expect(() => saveEntries([entry])).not.toThrow()
+  expect(saveEntries([entry])).toBe(false)
 })
 
 test('does not throw when localStorage removeItem throws', () => {
@@ -94,5 +117,5 @@ test('does not throw when localStorage removeItem throws', () => {
     throw new DOMException('Blocked storage access', 'SecurityError')
   })
 
-  expect(() => clearEntries()).not.toThrow()
+  expect(clearEntries()).toBe(false)
 })

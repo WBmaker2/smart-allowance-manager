@@ -13,6 +13,11 @@ import {
 import { clearEntries, loadEntries, saveEntries } from './lib/storage'
 
 const formatCurrency = (amount: number) => `${amount.toLocaleString('ko-KR')}원`
+const saveFailureMessage = '브라우저 저장 공간 문제로 기록을 저장하지 못했습니다.'
+const deleteFailureMessage =
+  '브라우저 저장 공간 문제로 기록을 삭제하지 못했습니다.'
+const clearFailureMessage =
+  '브라우저 저장 공간 문제로 모든 기록을 지우지 못했습니다.'
 
 const getDateKey = (date = new Date()) => {
   const year = date.getFullYear()
@@ -81,8 +86,12 @@ function App() {
     })
     const nextEntries = [...entries, entry]
 
+    if (!saveEntries(nextEntries)) {
+      setStatusMessage(saveFailureMessage)
+      return
+    }
+
     setEntries(nextEntries)
-    saveEntries(nextEntries)
     setStatusMessage(
       `${entry.item} ${formatCurrency(entry.amount)}을 기록했습니다`,
     )
@@ -91,16 +100,24 @@ function App() {
   const handleDeleteEntry = (entryToDelete: AllowanceEntry) => {
     const nextEntries = entries.filter((entry) => entry.id !== entryToDelete.id)
 
+    if (!saveEntries(nextEntries)) {
+      setStatusMessage(deleteFailureMessage)
+      return
+    }
+
     setEntries(nextEntries)
-    saveEntries(nextEntries)
     setStatusMessage(
       `${entryToDelete.item} ${formatCurrency(entryToDelete.amount)} 기록을 삭제했습니다`,
     )
   }
 
   const handleClearEntries = () => {
+    if (!clearEntries()) {
+      setStatusMessage(clearFailureMessage)
+      return
+    }
+
     setEntries([])
-    clearEntries()
     setStatusMessage('모든 기록을 지웠습니다')
   }
 

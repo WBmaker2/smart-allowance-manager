@@ -41,6 +41,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
+  vi.restoreAllMocks()
   localStorage.clear()
   vi.useRealTimers()
 })
@@ -84,6 +85,24 @@ test('loads saved records after rerender', async () => {
 
   render(<App />)
   expect(screen.getByText('연필')).toBeInTheDocument()
+})
+
+test('does not create a receipt when browser storage save fails', async () => {
+  const user = setupUser()
+
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
+  })
+
+  render(<App />)
+
+  await addReceipt(user, '연필', '1000', 'school')
+
+  expect(screen.queryByText('연필')).not.toBeInTheDocument()
+  expect(screen.getByText('아직 기록한 영수증이 없습니다.')).toBeInTheDocument()
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '브라우저 저장 공간 문제로 기록을 저장하지 못했습니다.',
+  )
 })
 
 test('deletes a receipt and recalculates the weekly category summary', async () => {
