@@ -139,17 +139,22 @@ function App() {
       </section>
 
       <div className="app-grid">
-        <section className="panel form-panel" aria-labelledby="form-title">
-          <div className="section-heading">
-            <p className="eyebrow">오늘의 선택</p>
-            <h2 id="form-title">용돈 기록하기</h2>
-          </div>
-          <EntryForm onSubmit={handleAddEntry} />
-        </section>
+        <div className="app-column app-column-primary">
+          <section className="panel form-panel" aria-labelledby="form-title">
+            <div className="section-heading">
+              <p className="eyebrow">오늘의 선택</p>
+              <h2 id="form-title">용돈 기록하기</h2>
+            </div>
+            <EntryForm onSubmit={handleAddEntry} />
+          </section>
 
-        <SpendingPieChart summaries={categorySummaries} />
-        <WeeklyInsight insight={weeklyInsight} />
-        <ReceiptList entries={weeklyEntries} onDelete={handleDeleteEntry} />
+          <ReceiptList entries={weeklyEntries} onDelete={handleDeleteEntry} />
+        </div>
+
+        <div className="app-column app-column-secondary">
+          <SpendingPieChart summaries={categorySummaries} />
+          <WeeklyInsight insight={weeklyInsight} />
+        </div>
       </div>
 
       {entries.length > 0 ? (

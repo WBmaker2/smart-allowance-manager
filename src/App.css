@@ -42,21 +42,21 @@ select:focus-visible {
 }
 
 .app-shell {
-  width: min(100%, 1180px);
+  width: min(100%, 1240px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 28px 20px 40px;
+  padding: 18px 18px 28px;
 }
 
 .hero-panel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 24px;
+  gap: 18px;
   align-items: end;
   border: 1px solid #e0d3bf;
   border-radius: 8px;
   background: #fffaf0;
-  padding: clamp(24px, 5vw, 44px);
+  padding: clamp(18px, 3vw, 28px);
   box-shadow: 0 18px 42px rgba(97, 73, 38, 0.11);
 }
 
@@ -77,26 +77,26 @@ h1 {
   max-width: 760px;
   margin: 0;
   color: #26221c;
-  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-size: clamp(1.75rem, 3vw, 2.55rem);
   line-height: 1.1;
 }
 
 h1 + p {
   max-width: 640px;
-  margin: 16px 0 0;
+  margin: 10px 0 0;
   color: #635d52;
-  font-size: 1.08rem;
-  line-height: 1.7;
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 .hero-total {
   display: grid;
   gap: 2px;
-  min-width: 180px;
+  min-width: 168px;
   border: 1px solid #b7ddc3;
   border-radius: 8px;
   background: #eef8e8;
-  padding: 18px;
+  padding: 14px 16px;
 }
 
 .hero-total span {
@@ -112,32 +112,31 @@ h1 + p {
 
 .app-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.92fr) minmax(320px, 1.08fr);
-  gap: 18px;
-  margin-top: 18px;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+  gap: 14px;
+  margin-top: 14px;
   align-items: start;
+  min-width: 0;
+}
+
+.app-column {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
 }
 
 .panel {
   border: 1px solid #e0d3bf;
   border-radius: 8px;
   background: #fffdf8;
-  padding: 22px;
+  padding: 18px;
   box-shadow: 0 12px 28px rgba(97, 73, 38, 0.08);
-}
-
-.form-panel,
-.receipt-panel {
-  grid-column: 1;
-}
-
-.chart-panel,
-.insight-panel {
-  grid-column: 2;
+  min-width: 0;
 }
 
 .section-heading {
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .section-heading h2 {
@@ -148,7 +147,7 @@ h1 + p {
 
 .entry-form {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .field-row {
@@ -208,8 +207,8 @@ h1 + p {
 }
 
 .chart-wrap {
-  height: 260px;
-  margin: 4px 0 16px;
+  height: 220px;
+  margin: 0 0 12px;
 }
 
 .summary-list,
@@ -263,12 +262,12 @@ h1 + p {
 }
 
 .reflection-text {
-  margin: 18px 0 0;
+  margin: 12px 0 0;
   border-radius: 8px;
   background: #eef8e8;
   color: #25472f;
-  line-height: 1.7;
-  padding: 14px;
+  line-height: 1.55;
+  padding: 12px;
 }
 
 .receipt-list {
@@ -337,7 +336,7 @@ h1 + p {
 
 .clear-button {
   display: block;
-  margin: 18px auto 0;
+  margin: 14px auto 0;
   border: 1px solid #d8c8ad;
   background: #fffdf8;
   color: #39342d;
@@ -368,9 +367,16 @@ h1 + p {
   }
 
   .hero-panel,
-  .app-grid,
   .field-row {
     grid-template-columns: 1fr;
+  }
+
+  .app-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-column {
+    display: contents;
   }
 
   .hero-total,
@@ -410,7 +416,7 @@ h1 + p {
   }
 
   .chart-wrap {
-    height: 230px;
+    height: 220px;
   }
 }
 
