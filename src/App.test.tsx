@@ -33,6 +33,15 @@ const addReceipt = async (
   await user.click(screen.getByRole('button', { name: '기록하기' }))
 }
 
+const saveWeeklyGoal = async (
+  user: ReturnType<typeof setupUser>,
+  amount: string,
+) => {
+  await user.clear(screen.getByLabelText('이번 주 목표 금액'))
+  await user.type(screen.getByLabelText('이번 주 목표 금액'), amount)
+  await user.click(screen.getByRole('button', { name: '목표 저장' }))
+}
+
 beforeEach(() => {
   vi.useFakeTimers({ shouldAdvanceTime: true })
   vi.setSystemTime(new Date(2026, 3, 26, 12, 0, 0))
@@ -154,4 +163,57 @@ test('refreshes the weekly view when the calendar day changes', async () => {
 
   expect(screen.queryByText('일요일 간식')).not.toBeInTheDocument()
   expect(screen.getByText('이번 주 기록이 아직 없습니다.')).toBeInTheDocument()
+})
+
+test('saves a weekly goal and restores it after rerender', async () => {
+  const user = setupUser()
+  const { unmount } = render(<App />)
+
+  expect(screen.getByText('이번 주 목표 금액을 정해 보세요.')).toBeInTheDocument()
+
+  await saveWeeklyGoal(user, '10000')
+
+  expect(screen.getByText('목표까지 10,000원 남았어요.')).toBeInTheDocument()
+  expect(screen.getByDisplayValue('10000')).toBeInTheDocument()
+
+  unmount()
+  render(<App />)
+
+  expect(screen.getByText('목표까지 10,000원 남았어요.')).toBeInTheDocument()
+  expect(screen.getByDisplayValue('10000')).toBeInTheDocument()
+})
+
+test('updates remaining amount and percent used after adding a receipt', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await saveWeeklyGoal(user, '10000')
+  await addReceipt(user, '보드게임', '6000', 'hobby')
+
+  expect(screen.getByText('목표까지 4,000원 남았어요.')).toBeInTheDocument()
+  expect(screen.getByText('60% 사용')).toBeInTheDocument()
+})
+
+test('shows the weekly goal overage message', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await saveWeeklyGoal(user, '10000')
+  await addReceipt(user, '간식 묶음', '12000', 'snack')
+
+  expect(
+    screen.getByText('목표보다 2,000원 더 사용했어요.'),
+  ).toBeInTheDocument()
+  expect(screen.getByText('100% 사용')).toBeInTheDocument()
+})
+
+test('clears the weekly goal', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await saveWeeklyGoal(user, '10000')
+  await user.click(screen.getByRole('button', { name: '목표 지우기' }))
+
+  expect(screen.getByText('이번 주 목표 금액을 정해 보세요.')).toBeInTheDocument()
+  expect(screen.queryByText('목표까지 10,000원 남았어요.')).not.toBeInTheDocument()
 })

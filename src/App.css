@@ -150,6 +150,11 @@ h1 + p {
   gap: 12px;
 }
 
+.goal-form {
+  display: grid;
+  gap: 10px;
+}
+
 .field-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(140px, 0.9fr);
@@ -187,6 +192,7 @@ h1 + p {
 
 .primary-button,
 .clear-button,
+.goal-clear-button,
 .receipt-actions button {
   border: 0;
   border-radius: 8px;
@@ -204,6 +210,56 @@ h1 + p {
 
 .primary-button:hover {
   background: #1d4ed8;
+}
+
+.goal-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+}
+
+.goal-input-row .primary-button {
+  min-height: 44px;
+}
+
+.goal-status {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.goal-status p {
+  margin: 0;
+}
+
+.goal-status > p:first-child {
+  color: #25472f;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.goal-progress {
+  width: fit-content;
+  border-radius: 8px;
+  background: #eef8e8;
+  color: #166534;
+  font-size: 0.9rem;
+  font-weight: 900;
+  padding: 6px 9px;
+}
+
+.goal-clear-button {
+  min-height: 38px;
+  margin-top: 14px;
+  border: 1px solid #d8c8ad;
+  background: #fff7ed;
+  color: #7c2d12;
+  padding: 0 12px;
+}
+
+.goal-clear-button:hover {
+  background: #ffedd5;
 }
 
 .chart-wrap {
@@ -383,6 +439,7 @@ h1 + p {
   .form-panel,
   .insight-panel,
   .chart-panel,
+  .goal-panel,
   .receipt-panel {
     grid-column: 1;
   }
@@ -396,11 +453,19 @@ h1 + p {
   }
 
   .insight-panel {
+    order: 4;
+  }
+
+  .goal-panel {
     order: 3;
   }
 
   .receipt-panel {
-    order: 4;
+    order: 5;
+  }
+
+  .goal-input-row {
+    grid-template-columns: 1fr;
   }
 
   .receipt-item,
