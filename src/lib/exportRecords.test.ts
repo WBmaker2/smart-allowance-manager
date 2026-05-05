@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 import type { AllowanceEntry, CategorySummary } from './allowance'
 import { createWeeklyCsv, createWeeklyFileName } from './exportRecords'
+import type { WeeklyBalanceStatus } from './weeklyBalance'
 
 const createEntry = (
   overrides: Partial<AllowanceEntry>,
@@ -22,6 +23,19 @@ const createSummary = (
   color: '#f97316',
   amount: 3000,
   percent: 75,
+  ...overrides,
+})
+
+const createBalanceStatus = (
+  overrides: Partial<WeeklyBalanceStatus>,
+): WeeklyBalanceStatus => ({
+  hasIncome: true,
+  incomeAmount: 20000,
+  spentAmount: 3000,
+  balanceAmount: 17000,
+  shortageAmount: 0,
+  percentSpent: 15,
+  isShort: false,
   ...overrides,
 })
 
@@ -112,5 +126,23 @@ test('sanitizes text fields that could be interpreted as spreadsheet formulas', 
 test('creates a weekly CSV file name from the reference date key', () => {
   expect(createWeeklyFileName('2026-04-26')).toBe(
     'smart-allowance-week-2026-04-26.csv',
+  )
+})
+
+test('adds weekly income and balance rows when balance status is available', () => {
+  const csv = createWeeklyCsv(
+    [
+      createEntry({
+        amount: 3000,
+      }),
+    ],
+    [createSummary({ amount: 3000, percent: 100 })],
+    createBalanceStatus({ spentAmount: 3000 }),
+  )
+
+  expect(csv).toContain(
+    ['', '항목,금액', '받은 돈,20000', '사용한 돈,3000', '남은 돈,17000'].join(
+      '\n',
+    ),
   )
 })

@@ -42,6 +42,15 @@ const saveWeeklyGoal = async (
   await user.click(screen.getByRole('button', { name: '목표 저장' }))
 }
 
+const saveWeeklyIncome = async (
+  user: ReturnType<typeof setupUser>,
+  amount: string,
+) => {
+  await user.clear(screen.getByLabelText('이번 주 받은 돈'))
+  await user.type(screen.getByLabelText('이번 주 받은 돈'), amount)
+  await user.click(screen.getByRole('button', { name: '받은 돈 저장' }))
+}
+
 beforeEach(() => {
   const localStorageStore = new Map<string, string>()
 
@@ -252,6 +261,79 @@ test('clears the weekly goal', async () => {
   expect(screen.queryByText('목표까지 10,000원 남았어요.')).not.toBeInTheDocument()
 })
 
+test('saves weekly income and updates the weekly balance after receipts', async () => {
+  const user = setupUser()
+  const { unmount } = render(<App />)
+
+  expect(
+    screen.getByText('이번 주 받은 돈을 입력하면 남은 돈을 볼 수 있어요.'),
+  ).toBeInTheDocument()
+
+  await saveWeeklyIncome(user, '20000')
+  await addReceipt(user, '공책', '7000', 'school')
+
+  const balanceSummary = screen.getByLabelText('이번 주 수입과 잔액 요약')
+
+  expect(screen.getByText('이번 주 남은 돈은 13,000원이에요.')).toBeInTheDocument()
+  expect(within(balanceSummary).getByText('받은 돈')).toBeInTheDocument()
+  expect(within(balanceSummary).getByText('20,000원')).toBeInTheDocument()
+  expect(within(balanceSummary).getByText('사용한 돈')).toBeInTheDocument()
+  expect(within(balanceSummary).getByText('7,000원')).toBeInTheDocument()
+  expect(within(balanceSummary).getByText('남은 돈')).toBeInTheDocument()
+  expect(within(balanceSummary).getByText('13,000원')).toBeInTheDocument()
+
+  unmount()
+  render(<App />)
+
+  expect(screen.getByDisplayValue('20000')).toBeInTheDocument()
+  expect(screen.getByText('이번 주 남은 돈은 13,000원이에요.')).toBeInTheDocument()
+})
+
+test('shows a weekly income shortage message', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await saveWeeklyIncome(user, '10000')
+  await addReceipt(user, '간식 묶음', '12000', 'snack')
+
+  expect(
+    screen.getByText('받은 돈보다 2,000원 더 사용했어요.'),
+  ).toBeInTheDocument()
+  expect(screen.getByText('부족한 돈')).toBeInTheDocument()
+})
+
+test('clears the weekly income amount', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await saveWeeklyIncome(user, '20000')
+  await user.click(screen.getByRole('button', { name: '받은 돈 지우기' }))
+
+  expect(
+    screen.getByText('이번 주 받은 돈을 입력하면 남은 돈을 볼 수 있어요.'),
+  ).toBeInTheDocument()
+  expect(screen.queryByText('이번 주 남은 돈은 20,000원이에요.')).not.toBeInTheDocument()
+})
+
+test('does not save weekly income when browser storage save fails', async () => {
+  const user = setupUser()
+
+  vi.mocked(localStorage.setItem).mockImplementationOnce(() => {
+    throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
+  })
+
+  render(<App />)
+
+  await saveWeeklyIncome(user, '20000')
+
+  expect(
+    screen.getByText('이번 주 받은 돈을 입력하면 남은 돈을 볼 수 있어요.'),
+  ).toBeInTheDocument()
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '브라우저 저장 공간 문제로 받은 돈을 저장하지 못했습니다.',
+  )
+})
+
 test('disables weekly report action buttons when there are no weekly records', () => {
   render(<App />)
 
@@ -289,6 +371,7 @@ test('downloads a weekly CSV report after adding a receipt', async () => {
 
   render(<App />)
 
+  await saveWeeklyIncome(user, '20000')
   await addReceipt(user, '떡볶이', '3000', 'snack')
   await user.click(screen.getByRole('button', { name: 'CSV 다운로드' }))
 

@@ -1,5 +1,6 @@
 import { CATEGORIES } from '../data/categories'
 import type { AllowanceEntry, CategorySummary } from './allowance'
+import type { WeeklyBalanceStatus } from './weeklyBalance'
 
 const categoryLabelById = new Map(
   CATEGORIES.map((category) => [category.id, category.label]),
@@ -26,6 +27,7 @@ const escapeCsvField = (value: string | number) => {
 export const createWeeklyCsv = (
   entries: AllowanceEntry[],
   summaries: CategorySummary[],
+  balanceStatus?: WeeklyBalanceStatus,
 ) => {
   const sortedEntries = [...entries].sort((left, right) => {
     const dateComparison = left.date.localeCompare(right.date)
@@ -53,6 +55,22 @@ export const createWeeklyCsv = (
       .map(escapeCsvField)
       .join(','),
   )
+  const totalSpentAmount =
+    balanceStatus?.spentAmount ??
+    summaries.reduce((total, summary) => total + summary.amount, 0)
+  const balanceRows =
+    balanceStatus && balanceStatus.hasIncome
+      ? [
+          [sanitizeCsvTextField('받은 돈'), balanceStatus.incomeAmount].join(','),
+          [sanitizeCsvTextField('사용한 돈'), totalSpentAmount].join(','),
+          [
+            sanitizeCsvTextField(balanceStatus.isShort ? '부족한 돈' : '남은 돈'),
+            balanceStatus.isShort
+              ? balanceStatus.shortageAmount
+              : balanceStatus.balanceAmount,
+          ].join(','),
+        ]
+      : []
 
   return [
     '날짜,분류,내용,금액',
@@ -60,6 +78,9 @@ export const createWeeklyCsv = (
     '',
     '분류,합계,비율',
     ...summaryRows,
+    ...(balanceRows.length > 0
+      ? ['', '항목,금액', ...balanceRows]
+      : []),
   ].join('\n')
 }
 

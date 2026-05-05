@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import EntryForm, { type EntryFormValues } from './components/EntryForm'
 import ReceiptList from './components/ReceiptList'
 import SpendingPieChart from './components/SpendingPieChart'
+import WeeklyBalanceCard from './components/WeeklyBalanceCard'
 import WeeklyGoalCard from './components/WeeklyGoalCard'
 import WeeklyInsight from './components/WeeklyInsight'
 import WeeklyReportActions from './components/WeeklyReportActions'
@@ -14,6 +15,13 @@ import {
 } from './lib/allowance'
 import { createWeeklyCsv, createWeeklyFileName } from './lib/exportRecords'
 import { clearEntries, loadEntries, saveEntries } from './lib/storage'
+import {
+  calculateWeeklyBalanceStatus,
+  clearWeeklyIncomeAmount,
+  getWeeklyBalanceMessage,
+  loadWeeklyIncomeAmount,
+  saveWeeklyIncomeAmount,
+} from './lib/weeklyBalance'
 import {
   calculateWeeklyGoalStatus,
   clearWeeklyGoalAmount,
@@ -32,6 +40,10 @@ const goalSaveFailureMessage =
   '브라우저 저장 공간 문제로 목표 금액을 저장하지 못했습니다.'
 const goalClearFailureMessage =
   '브라우저 저장 공간 문제로 목표 금액을 지우지 못했습니다.'
+const incomeSaveFailureMessage =
+  '브라우저 저장 공간 문제로 받은 돈을 저장하지 못했습니다.'
+const incomeClearFailureMessage =
+  '브라우저 저장 공간 문제로 받은 돈을 지우지 못했습니다.'
 
 const getDateKey = (date = new Date()) => {
   const year = date.getFullYear()
@@ -60,6 +72,9 @@ const getDelayUntilNextDateKey = () => {
 
 function App() {
   const [entries, setEntries] = useState<AllowanceEntry[]>(() => loadEntries())
+  const [weeklyIncomeAmount, setWeeklyIncomeAmount] = useState<number | null>(
+    () => loadWeeklyIncomeAmount(),
+  )
   const [weeklyGoalAmount, setWeeklyGoalAmount] = useState<number | null>(() =>
     loadWeeklyGoalAmount(),
   )
@@ -99,6 +114,15 @@ function App() {
     [weeklyGoalAmount, weeklyInsight.totalAmount],
   )
   const weeklyGoalMessage = getWeeklyGoalMessage(weeklyGoalStatus)
+  const weeklyBalanceStatus = useMemo(
+    () =>
+      calculateWeeklyBalanceStatus(
+        weeklyInsight.totalAmount,
+        weeklyIncomeAmount,
+      ),
+    [weeklyIncomeAmount, weeklyInsight.totalAmount],
+  )
+  const weeklyBalanceMessage = getWeeklyBalanceMessage(weeklyBalanceStatus)
 
   const handleAddEntry = (values: EntryFormValues) => {
     const entry = createAllowanceEntry({
@@ -166,8 +190,34 @@ function App() {
     return true
   }
 
+  const handleSaveWeeklyIncome = (incomeAmount: number) => {
+    if (!saveWeeklyIncomeAmount(incomeAmount)) {
+      setStatusMessage(incomeSaveFailureMessage)
+      return false
+    }
+
+    setWeeklyIncomeAmount(incomeAmount)
+    setStatusMessage(`이번 주 받은 돈 ${formatCurrency(incomeAmount)}을 저장했습니다`)
+    return true
+  }
+
+  const handleClearWeeklyIncome = () => {
+    if (!clearWeeklyIncomeAmount()) {
+      setStatusMessage(incomeClearFailureMessage)
+      return false
+    }
+
+    setWeeklyIncomeAmount(null)
+    setStatusMessage('이번 주 받은 돈을 지웠습니다')
+    return true
+  }
+
   const handleDownloadWeeklyCsv = () => {
-    const csv = createWeeklyCsv(weeklyEntries, categorySummaries)
+    const csv = createWeeklyCsv(
+      weeklyEntries,
+      categorySummaries,
+      weeklyBalanceStatus,
+    )
     const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
@@ -223,6 +273,12 @@ function App() {
 
         <div className="app-column app-column-secondary">
           <SpendingPieChart summaries={categorySummaries} />
+          <WeeklyBalanceCard
+            status={weeklyBalanceStatus}
+            message={weeklyBalanceMessage}
+            onSave={handleSaveWeeklyIncome}
+            onClear={handleClearWeeklyIncome}
+          />
           <WeeklyGoalCard
             status={weeklyGoalStatus}
             message={weeklyGoalMessage}
