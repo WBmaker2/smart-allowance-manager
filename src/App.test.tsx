@@ -33,16 +33,38 @@ const addReceipt = async (
   await user.click(screen.getByRole('button', { name: '기록하기' }))
 }
 
+const saveWeeklyGoal = async (
+  user: ReturnType<typeof setupUser>,
+  amount: string,
+) => {
+  await user.clear(screen.getByLabelText('이번 주 목표 금액'))
+  await user.type(screen.getByLabelText('이번 주 목표 금액'), amount)
+  await user.click(screen.getByRole('button', { name: '목표 저장' }))
+}
+
 beforeEach(() => {
+  const localStorageStore = new Map<string, string>()
+
+  vi.stubGlobal('localStorage', {
+    getItem: vi.fn((key: string) => localStorageStore.get(key) ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      localStorageStore.set(key, value)
+    }),
+    removeItem: vi.fn((key: string) => {
+      localStorageStore.delete(key)
+    }),
+    clear: vi.fn(() => {
+      localStorageStore.clear()
+    }),
+  })
   vi.useFakeTimers({ shouldAdvanceTime: true })
   vi.setSystemTime(new Date(2026, 3, 26, 12, 0, 0))
-  localStorage.clear()
 })
 
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
-  localStorage.clear()
   vi.useRealTimers()
 })
 
@@ -90,7 +112,7 @@ test('loads saved records after rerender', async () => {
 test('does not create a receipt when browser storage save fails', async () => {
   const user = setupUser()
 
-  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+  vi.mocked(localStorage.setItem).mockImplementationOnce(() => {
     throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
   })
 
@@ -154,4 +176,146 @@ test('refreshes the weekly view when the calendar day changes', async () => {
 
   expect(screen.queryByText('일요일 간식')).not.toBeInTheDocument()
   expect(screen.getByText('이번 주 기록이 아직 없습니다.')).toBeInTheDocument()
+})
+
+test('saves a weekly goal and restores it after rerender', async () => {
+  const user = setupUser()
+  const { unmount } = render(<App />)
+
+  expect(screen.getByText('이번 주 목표 금액을 정해 보세요.')).toBeInTheDocument()
+
+  await saveWeeklyGoal(user, '10000')
+
+  expect(screen.getByText('목표까지 10,000원 남았어요.')).toBeInTheDocument()
+  expect(screen.getByDisplayValue('10000')).toBeInTheDocument()
+
+  unmount()
+  render(<App />)
+
+  expect(screen.getByText('목표까지 10,000원 남았어요.')).toBeInTheDocument()
+  expect(screen.getByDisplayValue('10000')).toBeInTheDocument()
+})
+
+test('updates remaining amount and percent used after adding a receipt', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await saveWeeklyGoal(user, '10000')
+  await addReceipt(user, '보드게임', '6000', 'hobby')
+
+  expect(screen.getByText('목표까지 4,000원 남았어요.')).toBeInTheDocument()
+  expect(screen.getByText('60% 사용')).toBeInTheDocument()
+  expect(
+    screen.getByRole('progressbar', { name: '주간 목표 사용률' }),
+  ).toHaveAttribute('aria-valuenow', '60')
+})
+
+test('does not save a weekly goal when browser storage save fails', async () => {
+  const user = setupUser()
+
+  vi.mocked(localStorage.setItem).mockImplementationOnce(() => {
+    throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
+  })
+
+  render(<App />)
+
+  await saveWeeklyGoal(user, '10000')
+
+  expect(screen.getByText('이번 주 목표 금액을 정해 보세요.')).toBeInTheDocument()
+  expect(screen.queryByText('목표까지 10,000원 남았어요.')).not.toBeInTheDocument()
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '브라우저 저장 공간 문제로 목표 금액을 저장하지 못했습니다.',
+  )
+})
+
+test('shows the weekly goal overage message', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await saveWeeklyGoal(user, '10000')
+  await addReceipt(user, '간식 묶음', '12000', 'snack')
+
+  expect(
+    screen.getByText('목표보다 2,000원 더 사용했어요.'),
+  ).toBeInTheDocument()
+  expect(screen.getByText('100% 사용')).toBeInTheDocument()
+})
+
+test('clears the weekly goal', async () => {
+  const user = setupUser()
+  render(<App />)
+
+  await saveWeeklyGoal(user, '10000')
+  await user.click(screen.getByRole('button', { name: '목표 지우기' }))
+
+  expect(screen.getByText('이번 주 목표 금액을 정해 보세요.')).toBeInTheDocument()
+  expect(screen.queryByText('목표까지 10,000원 남았어요.')).not.toBeInTheDocument()
+})
+
+test('disables weekly report action buttons when there are no weekly records', () => {
+  render(<App />)
+
+  expect(screen.getByRole('button', { name: 'CSV 다운로드' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '인쇄하기' })).toBeDisabled()
+})
+
+test('downloads a weekly CSV report after adding a receipt', async () => {
+  const user = setupUser()
+  const createObjectURL = vi.fn(() => 'blob:weekly-report')
+  const revokeObjectURL = vi.fn()
+  const anchor = document.createElement('a')
+  const click = vi.spyOn(anchor, 'click').mockImplementation(() => {})
+  const originalCreateElement = document.createElement.bind(document)
+  const remove = vi.spyOn(anchor, 'remove')
+  const append = vi.spyOn(document.body, 'append')
+  const TestURL = class extends URL {}
+
+  Object.defineProperty(TestURL, 'createObjectURL', {
+    configurable: true,
+    value: createObjectURL,
+  })
+  Object.defineProperty(TestURL, 'revokeObjectURL', {
+    configurable: true,
+    value: revokeObjectURL,
+  })
+  vi.stubGlobal('URL', TestURL)
+  vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
+    if (tagName === 'a') {
+      return anchor
+    }
+
+    return originalCreateElement(tagName)
+  })
+
+  render(<App />)
+
+  await addReceipt(user, '떡볶이', '3000', 'snack')
+  await user.click(screen.getByRole('button', { name: 'CSV 다운로드' }))
+
+  expect(createObjectURL).toHaveBeenCalledTimes(1)
+  expect(anchor.download).toBe('smart-allowance-week-2026-04-26.csv')
+  expect(anchor.href).toBe('blob:weekly-report')
+  expect(anchor.style.display).toBe('none')
+  expect(append).toHaveBeenCalledWith(anchor)
+  expect(click).toHaveBeenCalledTimes(1)
+  expect(remove).toHaveBeenCalledTimes(1)
+  expect(revokeObjectURL).toHaveBeenCalledWith('blob:weekly-report')
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '이번 주 기록 CSV를 만들었습니다',
+  )
+})
+
+test('opens the print dialog for weekly records', async () => {
+  const user = setupUser()
+  const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+
+  render(<App />)
+
+  await addReceipt(user, '떡볶이', '3000', 'snack')
+  await user.click(screen.getByRole('button', { name: '인쇄하기' }))
+
+  expect(print).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '이번 주 기록 인쇄 창을 열었습니다',
+  )
 })

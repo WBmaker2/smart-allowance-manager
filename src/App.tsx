@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import EntryForm, { type EntryFormValues } from './components/EntryForm'
 import ReceiptList from './components/ReceiptList'
 import SpendingPieChart from './components/SpendingPieChart'
+import WeeklyGoalCard from './components/WeeklyGoalCard'
 import WeeklyInsight from './components/WeeklyInsight'
+import WeeklyReportActions from './components/WeeklyReportActions'
 import {
   type AllowanceEntry,
   createAllowanceEntry,
@@ -10,7 +12,15 @@ import {
   getWeeklyInsight,
   summarizeByCategory,
 } from './lib/allowance'
+import { createWeeklyCsv, createWeeklyFileName } from './lib/exportRecords'
 import { clearEntries, loadEntries, saveEntries } from './lib/storage'
+import {
+  calculateWeeklyGoalStatus,
+  clearWeeklyGoalAmount,
+  getWeeklyGoalMessage,
+  loadWeeklyGoalAmount,
+  saveWeeklyGoalAmount,
+} from './lib/weeklyGoal'
 
 const formatCurrency = (amount: number) => `${amount.toLocaleString('ko-KR')}원`
 const saveFailureMessage = '브라우저 저장 공간 문제로 기록을 저장하지 못했습니다.'
@@ -18,6 +28,10 @@ const deleteFailureMessage =
   '브라우저 저장 공간 문제로 기록을 삭제하지 못했습니다.'
 const clearFailureMessage =
   '브라우저 저장 공간 문제로 모든 기록을 지우지 못했습니다.'
+const goalSaveFailureMessage =
+  '브라우저 저장 공간 문제로 목표 금액을 저장하지 못했습니다.'
+const goalClearFailureMessage =
+  '브라우저 저장 공간 문제로 목표 금액을 지우지 못했습니다.'
 
 const getDateKey = (date = new Date()) => {
   const year = date.getFullYear()
@@ -46,6 +60,9 @@ const getDelayUntilNextDateKey = () => {
 
 function App() {
   const [entries, setEntries] = useState<AllowanceEntry[]>(() => loadEntries())
+  const [weeklyGoalAmount, setWeeklyGoalAmount] = useState<number | null>(() =>
+    loadWeeklyGoalAmount(),
+  )
   const [statusMessage, setStatusMessage] = useState('')
   const [referenceDateKey, setReferenceDateKey] = useState(() => getDateKey())
 
@@ -76,6 +93,12 @@ function App() {
     () => getWeeklyInsight(weeklyEntries),
     [weeklyEntries],
   )
+  const weeklyGoalStatus = useMemo(
+    () =>
+      calculateWeeklyGoalStatus(weeklyInsight.totalAmount, weeklyGoalAmount),
+    [weeklyGoalAmount, weeklyInsight.totalAmount],
+  )
+  const weeklyGoalMessage = getWeeklyGoalMessage(weeklyGoalStatus)
 
   const handleAddEntry = (values: EntryFormValues) => {
     const entry = createAllowanceEntry({
@@ -121,6 +144,53 @@ function App() {
     setStatusMessage('모든 기록을 지웠습니다')
   }
 
+  const handleSaveWeeklyGoal = (goalAmount: number) => {
+    if (!saveWeeklyGoalAmount(goalAmount)) {
+      setStatusMessage(goalSaveFailureMessage)
+      return false
+    }
+
+    setWeeklyGoalAmount(goalAmount)
+    setStatusMessage(`이번 주 목표 금액 ${formatCurrency(goalAmount)}을 저장했습니다`)
+    return true
+  }
+
+  const handleClearWeeklyGoal = () => {
+    if (!clearWeeklyGoalAmount()) {
+      setStatusMessage(goalClearFailureMessage)
+      return false
+    }
+
+    setWeeklyGoalAmount(null)
+    setStatusMessage('이번 주 목표 금액을 지웠습니다')
+    return true
+  }
+
+  const handleDownloadWeeklyCsv = () => {
+    const csv = createWeeklyCsv(weeklyEntries, categorySummaries)
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+
+    anchor.href = url
+    anchor.download = createWeeklyFileName(referenceDateKey)
+    anchor.style.display = 'none'
+    document.body.append(anchor)
+
+    try {
+      anchor.click()
+      setStatusMessage('이번 주 기록 CSV를 만들었습니다')
+    } finally {
+      anchor.remove()
+      URL.revokeObjectURL(url)
+    }
+  }
+
+  const handlePrintWeeklyReport = () => {
+    window.print()
+    setStatusMessage('이번 주 기록 인쇄 창을 열었습니다')
+  }
+
   return (
     <main className="app-shell">
       <section className="hero-panel" aria-labelledby="app-title">
@@ -153,7 +223,18 @@ function App() {
 
         <div className="app-column app-column-secondary">
           <SpendingPieChart summaries={categorySummaries} />
+          <WeeklyGoalCard
+            status={weeklyGoalStatus}
+            message={weeklyGoalMessage}
+            onSave={handleSaveWeeklyGoal}
+            onClear={handleClearWeeklyGoal}
+          />
           <WeeklyInsight insight={weeklyInsight} />
+          <WeeklyReportActions
+            disabled={weeklyEntries.length === 0}
+            onDownloadCsv={handleDownloadWeeklyCsv}
+            onPrint={handlePrintWeeklyReport}
+          />
         </div>
       </div>
 
