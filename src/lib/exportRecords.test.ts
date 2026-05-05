@@ -88,6 +88,27 @@ test('escapes CSV fields with commas, quotes, and line breaks', () => {
   expect(csv).toContain('2026-04-26,선물,"친구 선물, ""작은 카드""\n포함",4500')
 })
 
+test('sanitizes text fields that could be interpreted as spreadsheet formulas', () => {
+  const csv = createWeeklyCsv(
+    [
+      createEntry({
+        item: '=HYPERLINK("https://example.com")',
+        amount: 1200,
+      }),
+      createEntry({
+        id: 'entry-with-leading-space',
+        item: '   +SUM(1,1)',
+        amount: 3400,
+        createdAt: '2026-04-26T10:00:00.000Z',
+      }),
+    ],
+    [],
+  )
+
+  expect(csv).toContain('2026-04-26,간식,"\'=HYPERLINK(""https://example.com"")",1200')
+  expect(csv).toContain('2026-04-26,간식,"\'   +SUM(1,1)",3400')
+})
+
 test('creates a weekly CSV file name from the reference date key', () => {
   expect(createWeeklyFileName('2026-04-26')).toBe(
     'smart-allowance-week-2026-04-26.csv',

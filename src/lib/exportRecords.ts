@@ -5,8 +5,16 @@ const categoryLabelById = new Map(
   CATEGORIES.map((category) => [category.id, category.label]),
 )
 
+const sanitizeCsvTextField = (value: string) => {
+  if (/^\s*[=+\-@]/.test(value)) {
+    return `'${value}`
+  }
+
+  return value
+}
+
 const escapeCsvField = (value: string | number) => {
-  const text = String(value)
+  const text = typeof value === 'number' ? String(value) : sanitizeCsvTextField(value)
 
   if (!/[",\n\r]/.test(text)) {
     return text

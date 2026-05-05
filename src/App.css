@@ -554,6 +554,9 @@ h1 + p {
 
 @media print {
   .form-panel,
+  .goal-form,
+  .goal-clear-button,
+  .receipt-actions button,
   .clear-button,
   .report-actions {
     display: none;
