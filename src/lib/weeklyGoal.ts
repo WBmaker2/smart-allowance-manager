@@ -1,13 +1,13 @@
 export const WEEKLY_GOAL_STORAGE_KEY = 'smart-allowance-manager.weekly-goal'
 
 export type WeeklyGoalStatus = {
+  hasGoal: boolean
   goalAmount: number
   spentAmount: number
   remainingAmount: number
   overAmount: number
   percentUsed: number
   isOverGoal: boolean
-  message: string
 }
 
 const formatWon = (amount: number) => amount.toLocaleString('ko-KR')
@@ -35,38 +35,59 @@ export function normalizeWeeklyGoalAmount(
 
 export function calculateWeeklyGoalStatus(
   spentAmount: number,
-  goalAmount: number,
+  goalAmount: number | null,
 ): WeeklyGoalStatus {
-  const normalizedGoalAmount = normalizeWeeklyGoalAmount(goalAmount) ?? 0
+  const normalizedGoalAmount =
+    goalAmount === null ? null : normalizeWeeklyGoalAmount(goalAmount)
   const normalizedSpentAmount = normalizeNonNegativeInteger(spentAmount)
+
+  if (normalizedGoalAmount === null) {
+    return {
+      hasGoal: false,
+      goalAmount: 0,
+      spentAmount: normalizedSpentAmount,
+      remainingAmount: 0,
+      overAmount: 0,
+      percentUsed: 0,
+      isOverGoal: false,
+    }
+  }
+
   const remainingAmount = Math.max(
     normalizedGoalAmount - normalizedSpentAmount,
     0,
   )
   const overAmount = Math.max(normalizedSpentAmount - normalizedGoalAmount, 0)
-  const percentUsed =
-    normalizedGoalAmount > 0
-      ? Math.min(
-          100,
-          Math.max(
-            0,
-            Math.floor((normalizedSpentAmount / normalizedGoalAmount) * 100),
-          ),
-        )
-      : 0
-  const isOverGoal = normalizedGoalAmount > 0 && normalizedSpentAmount > normalizedGoalAmount
+  const percentUsed = Math.min(
+    100,
+    Math.max(
+      0,
+      Math.floor((normalizedSpentAmount / normalizedGoalAmount) * 100),
+    ),
+  )
+  const isOverGoal = normalizedSpentAmount > normalizedGoalAmount
 
   return {
+    hasGoal: true,
     goalAmount: normalizedGoalAmount,
     spentAmount: normalizedSpentAmount,
     remainingAmount,
     overAmount,
     percentUsed,
     isOverGoal,
-    message: isOverGoal
-      ? `목표보다 ${formatWon(overAmount)}원 더 사용했어요.`
-      : `목표까지 ${formatWon(remainingAmount)}원 남았어요.`,
   }
+}
+
+export function getWeeklyGoalMessage(status: WeeklyGoalStatus): string {
+  if (!status.hasGoal) {
+    return '이번 주 목표 금액을 정해 보세요.'
+  }
+
+  if (status.isOverGoal) {
+    return `목표보다 ${formatWon(status.overAmount)}원 더 사용했어요.`
+  }
+
+  return `목표까지 ${formatWon(status.remainingAmount)}원 남았어요.`
 }
 
 export function loadWeeklyGoalAmount(): number | null {

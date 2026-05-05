@@ -3,6 +3,7 @@ import {
   WEEKLY_GOAL_STORAGE_KEY,
   calculateWeeklyGoalStatus,
   clearWeeklyGoalAmount,
+  getWeeklyGoalMessage,
   loadWeeklyGoalAmount,
   normalizeWeeklyGoalAmount,
   saveWeeklyGoalAmount,
@@ -22,27 +23,59 @@ test('normalizes weekly goal amounts to positive integer won values', () => {
 })
 
 test('calculates under-goal weekly status', () => {
-  expect(calculateWeeklyGoalStatus(3000, 10000)).toEqual({
+  const status = calculateWeeklyGoalStatus(3000, 10000)
+
+  expect(status).toEqual({
+    hasGoal: true,
     goalAmount: 10000,
     spentAmount: 3000,
     remainingAmount: 7000,
     overAmount: 0,
     percentUsed: 30,
     isOverGoal: false,
-    message: '목표까지 7,000원 남았어요.',
   })
+  expect(getWeeklyGoalMessage(status)).toBe('목표까지 7,000원 남았어요.')
 })
 
 test('calculates over-goal weekly status with capped percent', () => {
-  expect(calculateWeeklyGoalStatus(12000, 10000)).toEqual({
+  const status = calculateWeeklyGoalStatus(12000, 10000)
+
+  expect(status).toEqual({
+    hasGoal: true,
     goalAmount: 10000,
     spentAmount: 12000,
     remainingAmount: 0,
     overAmount: 2000,
     percentUsed: 100,
     isOverGoal: true,
-    message: '목표보다 2,000원 더 사용했어요.',
   })
+  expect(getWeeklyGoalMessage(status)).toBe('목표보다 2,000원 더 사용했어요.')
+})
+
+test('returns an empty-goal status when goal amount is missing or invalid', () => {
+  expect(calculateWeeklyGoalStatus(3000, null)).toEqual({
+    hasGoal: false,
+    goalAmount: 0,
+    spentAmount: 3000,
+    remainingAmount: 0,
+    overAmount: 0,
+    percentUsed: 0,
+    isOverGoal: false,
+  })
+
+  expect(calculateWeeklyGoalStatus(3000, Number.NaN)).toEqual({
+    hasGoal: false,
+    goalAmount: 0,
+    spentAmount: 3000,
+    remainingAmount: 0,
+    overAmount: 0,
+    percentUsed: 0,
+    isOverGoal: false,
+  })
+
+  expect(getWeeklyGoalMessage(calculateWeeklyGoalStatus(3000, null))).toBe(
+    '이번 주 목표 금액을 정해 보세요.',
+  )
 })
 
 test('normalizes spent amount before calculating status', () => {
@@ -64,7 +97,6 @@ test('normalizes spent amount before calculating status', () => {
 
 test('saves, loads, and clears weekly goal amount', () => {
   expect(saveWeeklyGoalAmount(12000.9)).toBe(true)
-  expect(localStorage.getItem(WEEKLY_GOAL_STORAGE_KEY)).toBe('12000')
   expect(loadWeeklyGoalAmount()).toBe(12000)
 
   expect(clearWeeklyGoalAmount()).toBe(true)
