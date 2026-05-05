@@ -4,6 +4,7 @@ import ReceiptList from './components/ReceiptList'
 import SpendingPieChart from './components/SpendingPieChart'
 import WeeklyGoalCard from './components/WeeklyGoalCard'
 import WeeklyInsight from './components/WeeklyInsight'
+import WeeklyReportActions from './components/WeeklyReportActions'
 import {
   type AllowanceEntry,
   createAllowanceEntry,
@@ -11,6 +12,7 @@ import {
   getWeeklyInsight,
   summarizeByCategory,
 } from './lib/allowance'
+import { createWeeklyCsv, createWeeklyFileName } from './lib/exportRecords'
 import { clearEntries, loadEntries, saveEntries } from './lib/storage'
 import {
   calculateWeeklyGoalStatus,
@@ -164,6 +166,24 @@ function App() {
     return true
   }
 
+  const handleDownloadWeeklyCsv = () => {
+    const csv = createWeeklyCsv(weeklyEntries, categorySummaries)
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+
+    anchor.href = url
+    anchor.download = createWeeklyFileName(referenceDateKey)
+    anchor.click()
+    URL.revokeObjectURL(url)
+    setStatusMessage('이번 주 기록 CSV를 만들었습니다')
+  }
+
+  const handlePrintWeeklyReport = () => {
+    window.print()
+    setStatusMessage('이번 주 기록 인쇄 창을 열었습니다')
+  }
+
   return (
     <main className="app-shell">
       <section className="hero-panel" aria-labelledby="app-title">
@@ -203,6 +223,11 @@ function App() {
             onClear={handleClearWeeklyGoal}
           />
           <WeeklyInsight insight={weeklyInsight} />
+          <WeeklyReportActions
+            disabled={weeklyEntries.length === 0}
+            onDownloadCsv={handleDownloadWeeklyCsv}
+            onPrint={handlePrintWeeklyReport}
+          />
         </div>
       </div>
 

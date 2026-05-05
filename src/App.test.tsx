@@ -238,3 +238,64 @@ test('clears the weekly goal', async () => {
   expect(screen.getByText('이번 주 목표 금액을 정해 보세요.')).toBeInTheDocument()
   expect(screen.queryByText('목표까지 10,000원 남았어요.')).not.toBeInTheDocument()
 })
+
+test('disables weekly report action buttons when there are no weekly records', () => {
+  render(<App />)
+
+  expect(screen.getByRole('button', { name: 'CSV 다운로드' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '인쇄하기' })).toBeDisabled()
+})
+
+test('downloads a weekly CSV report after adding a receipt', async () => {
+  const user = setupUser()
+  const createObjectURL = vi.fn(() => 'blob:weekly-report')
+  const revokeObjectURL = vi.fn()
+  const anchor = document.createElement('a')
+  const click = vi.spyOn(anchor, 'click').mockImplementation(() => {})
+  const originalCreateElement = document.createElement.bind(document)
+
+  Object.defineProperty(URL, 'createObjectURL', {
+    configurable: true,
+    value: createObjectURL,
+  })
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    configurable: true,
+    value: revokeObjectURL,
+  })
+  vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
+    if (tagName === 'a') {
+      return anchor
+    }
+
+    return originalCreateElement(tagName)
+  })
+
+  render(<App />)
+
+  await addReceipt(user, '떡볶이', '3000', 'snack')
+  await user.click(screen.getByRole('button', { name: 'CSV 다운로드' }))
+
+  expect(createObjectURL).toHaveBeenCalledTimes(1)
+  expect(anchor.download).toBe('smart-allowance-week-2026-04-26.csv')
+  expect(anchor.href).toBe('blob:weekly-report')
+  expect(click).toHaveBeenCalledTimes(1)
+  expect(revokeObjectURL).toHaveBeenCalledWith('blob:weekly-report')
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '이번 주 기록 CSV를 만들었습니다',
+  )
+})
+
+test('opens the print dialog for weekly records', async () => {
+  const user = setupUser()
+  const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+
+  render(<App />)
+
+  await addReceipt(user, '떡볶이', '3000', 'snack')
+  await user.click(screen.getByRole('button', { name: '인쇄하기' }))
+
+  expect(print).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '이번 주 기록 인쇄 창을 열었습니다',
+  )
+})
