@@ -12,7 +12,7 @@ const escapeCsvField = (value: string | number) => {
     return text
   }
 
-  return `"${text.replaceAll('"', '""')}"`
+  return `"${text.replace(/"/g, '""')}"`
 }
 
 export const createWeeklyCsv = (
