@@ -9,8 +9,29 @@ import {
   saveWeeklyGoalAmount,
 } from './weeklyGoal'
 
-beforeEach(() => localStorage.clear())
-afterEach(() => vi.restoreAllMocks())
+const storedValues = new Map<string, string>()
+
+beforeEach(() => {
+  storedValues.clear()
+
+  vi.stubGlobal('localStorage', {
+    getItem: vi.fn((key: string) => storedValues.get(key) ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      storedValues.set(key, String(value))
+    }),
+    removeItem: vi.fn((key: string) => {
+      storedValues.delete(key)
+    }),
+    clear: vi.fn(() => {
+      storedValues.clear()
+    }),
+  })
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 
 test('normalizes weekly goal amounts to positive integer won values', () => {
   expect(normalizeWeeklyGoalAmount('12000.9')).toBe(12000)
@@ -118,7 +139,7 @@ test('ignores broken stored weekly goal values', () => {
 })
 
 test('does not throw when localStorage getItem throws', () => {
-  vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+  vi.mocked(localStorage.getItem).mockImplementationOnce(() => {
     throw new DOMException('Blocked storage access', 'SecurityError')
   })
 
@@ -131,7 +152,7 @@ test('returns false when saving invalid weekly goal values', () => {
 })
 
 test('does not throw when localStorage setItem throws', () => {
-  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+  vi.mocked(localStorage.setItem).mockImplementationOnce(() => {
     throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
   })
 
@@ -139,7 +160,7 @@ test('does not throw when localStorage setItem throws', () => {
 })
 
 test('does not throw when localStorage removeItem throws', () => {
-  vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+  vi.mocked(localStorage.removeItem).mockImplementationOnce(() => {
     throw new DOMException('Blocked storage access', 'SecurityError')
   })
 
