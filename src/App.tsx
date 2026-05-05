@@ -174,9 +174,16 @@ function App() {
 
     anchor.href = url
     anchor.download = createWeeklyFileName(referenceDateKey)
-    anchor.click()
-    URL.revokeObjectURL(url)
-    setStatusMessage('이번 주 기록 CSV를 만들었습니다')
+    anchor.style.display = 'none'
+    document.body.append(anchor)
+
+    try {
+      anchor.click()
+      setStatusMessage('이번 주 기록 CSV를 만들었습니다')
+    } finally {
+      anchor.remove()
+      URL.revokeObjectURL(url)
+    }
   }
 
   const handlePrintWeeklyReport = () => {

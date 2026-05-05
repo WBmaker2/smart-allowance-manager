@@ -43,15 +43,28 @@ const saveWeeklyGoal = async (
 }
 
 beforeEach(() => {
+  const localStorageStore = new Map<string, string>()
+
+  vi.stubGlobal('localStorage', {
+    getItem: vi.fn((key: string) => localStorageStore.get(key) ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      localStorageStore.set(key, value)
+    }),
+    removeItem: vi.fn((key: string) => {
+      localStorageStore.delete(key)
+    }),
+    clear: vi.fn(() => {
+      localStorageStore.clear()
+    }),
+  })
   vi.useFakeTimers({ shouldAdvanceTime: true })
   vi.setSystemTime(new Date(2026, 3, 26, 12, 0, 0))
-  localStorage.clear()
 })
 
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
-  localStorage.clear()
   vi.useRealTimers()
 })
 
@@ -99,7 +112,7 @@ test('loads saved records after rerender', async () => {
 test('does not create a receipt when browser storage save fails', async () => {
   const user = setupUser()
 
-  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+  vi.mocked(localStorage.setItem).mockImplementationOnce(() => {
     throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
   })
 
@@ -200,7 +213,7 @@ test('updates remaining amount and percent used after adding a receipt', async (
 test('does not save a weekly goal when browser storage save fails', async () => {
   const user = setupUser()
 
-  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+  vi.mocked(localStorage.setItem).mockImplementationOnce(() => {
     throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
   })
 
@@ -253,15 +266,19 @@ test('downloads a weekly CSV report after adding a receipt', async () => {
   const anchor = document.createElement('a')
   const click = vi.spyOn(anchor, 'click').mockImplementation(() => {})
   const originalCreateElement = document.createElement.bind(document)
+  const remove = vi.spyOn(anchor, 'remove')
+  const append = vi.spyOn(document.body, 'append')
+  const TestURL = class extends URL {}
 
-  Object.defineProperty(URL, 'createObjectURL', {
+  Object.defineProperty(TestURL, 'createObjectURL', {
     configurable: true,
     value: createObjectURL,
   })
-  Object.defineProperty(URL, 'revokeObjectURL', {
+  Object.defineProperty(TestURL, 'revokeObjectURL', {
     configurable: true,
     value: revokeObjectURL,
   })
+  vi.stubGlobal('URL', TestURL)
   vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
     if (tagName === 'a') {
       return anchor
@@ -278,7 +295,10 @@ test('downloads a weekly CSV report after adding a receipt', async () => {
   expect(createObjectURL).toHaveBeenCalledTimes(1)
   expect(anchor.download).toBe('smart-allowance-week-2026-04-26.csv')
   expect(anchor.href).toBe('blob:weekly-report')
+  expect(anchor.style.display).toBe('none')
+  expect(append).toHaveBeenCalledWith(anchor)
   expect(click).toHaveBeenCalledTimes(1)
+  expect(remove).toHaveBeenCalledTimes(1)
   expect(revokeObjectURL).toHaveBeenCalledWith('blob:weekly-report')
   expect(screen.getByRole('status')).toHaveTextContent(
     '이번 주 기록 CSV를 만들었습니다',
