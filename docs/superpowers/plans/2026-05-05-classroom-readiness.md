@@ -30,7 +30,7 @@
 **Files:**
 - Create: `README.md`
 
-- [ ] **Step 1: Write the classroom README**
+- [x] **Step 1: Write the classroom README**
 
 Create `README.md` with this content:
 
@@ -82,7 +82,7 @@ npm run build
 ```
 ```
 
-- [ ] **Step 2: Verify the README**
+- [x] **Step 2: Verify the README**
 
 Run:
 
@@ -93,7 +93,7 @@ rg -n "성취기준|localStorage|https://wbmaker2.github.io/smart-allowance-mana
 
 Expected: `README.md` exists and the command prints the achievement standard, storage note, and deployed URL lines.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 Run:
 
@@ -112,7 +112,7 @@ Expected: documentation commit is created.
 - Create: `src/lib/weeklyGoal.ts`
 - Create: `src/lib/weeklyGoal.test.ts`
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 Create `src/lib/weeklyGoal.test.ts`:
 
@@ -184,7 +184,7 @@ test('returns false when weekly goal storage writes fail', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 
@@ -194,7 +194,7 @@ npm test -- src/lib/weeklyGoal.test.ts
 
 Expected: FAIL because `src/lib/weeklyGoal.ts` does not exist.
 
-- [ ] **Step 3: Implement weekly goal logic**
+- [x] **Step 3: Implement weekly goal logic**
 
 Create `src/lib/weeklyGoal.ts`:
 
@@ -290,7 +290,7 @@ export function clearWeeklyGoalAmount(): boolean {
 }
 ```
 
-- [ ] **Step 4: Run tests and commit**
+- [x] **Step 4: Run tests and commit**
 
 Run:
 
@@ -312,7 +312,7 @@ Expected: weekly goal tests pass and commit is created.
 - Modify: `src/App.css`
 - Modify: `src/App.test.tsx`
 
-- [ ] **Step 1: Write failing user-flow tests**
+- [x] **Step 1: Write failing user-flow tests**
 
 Append these tests to `src/App.test.tsx`:
 
@@ -348,7 +348,7 @@ test('updates the weekly goal progress after adding receipts', async () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 
@@ -358,7 +358,7 @@ npm test -- src/App.test.tsx
 
 Expected: FAIL because the weekly goal UI does not exist.
 
-- [ ] **Step 3: Create `WeeklyGoalCard`**
+- [x] **Step 3: Create `WeeklyGoalCard`**
 
 Create `src/components/WeeklyGoalCard.tsx`:
 
@@ -461,7 +461,7 @@ function WeeklyGoalCard({
 export default WeeklyGoalCard
 ```
 
-- [ ] **Step 4: Wire goal state in `App.tsx`**
+- [x] **Step 4: Wire goal state in `App.tsx`**
 
 Import the component and helpers:
 
@@ -528,7 +528,7 @@ Render the card before `WeeklyInsight`:
 />
 ```
 
-- [ ] **Step 5: Add CSS for goal UI**
+- [x] **Step 5: Add CSS for goal UI**
 
 Append to `src/App.css`:
 
@@ -598,7 +598,7 @@ Append to `src/App.css`:
 }
 ```
 
-- [ ] **Step 6: Run tests and commit**
+- [x] **Step 6: Run tests and commit**
 
 Run:
 
@@ -622,7 +622,7 @@ Expected: app flow and weekly goal tests pass and commit is created.
 - Modify: `src/App.css`
 - Modify: `src/App.test.tsx`
 
-- [ ] **Step 1: Write failing export tests**
+- [x] **Step 1: Write failing export tests**
 
 Create `src/lib/exportRecords.test.ts`:
 
@@ -655,7 +655,7 @@ test('creates a stable weekly file name from a date key', () => {
 })
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run:
 
@@ -665,7 +665,7 @@ npm test -- src/lib/exportRecords.test.ts
 
 Expected: FAIL because `src/lib/exportRecords.ts` does not exist.
 
-- [ ] **Step 3: Implement export helpers**
+- [x] **Step 3: Implement export helpers**
 
 Create `src/lib/exportRecords.ts`:
 
@@ -723,7 +723,7 @@ export const createWeeklyCsv = (
 }
 ```
 
-- [ ] **Step 4: Create report action UI**
+- [x] **Step 4: Create report action UI**
 
 Create `src/components/WeeklyReportActions.tsx`:
 
@@ -771,7 +771,7 @@ function WeeklyReportActions({
 export default WeeklyReportActions
 ```
 
-- [ ] **Step 5: Wire export actions in `App.tsx`**
+- [x] **Step 5: Wire export actions in `App.tsx`**
 
 Import:
 
@@ -816,7 +816,7 @@ Render after `WeeklyInsight`:
 />
 ```
 
-- [ ] **Step 6: Add CSS and print rules**
+- [x] **Step 6: Add CSS and print rules**
 
 Append to `src/App.css`:
 
@@ -853,7 +853,7 @@ Append to `src/App.css`:
 }
 ```
 
-- [ ] **Step 7: Run tests and commit**
+- [x] **Step 7: Run tests and commit**
 
 Run:
 
@@ -873,7 +873,7 @@ Expected: export helper and app flow tests pass and commit is created.
 - Modify: `README.md`
 - Modify: `docs/superpowers/plans/2026-05-05-classroom-readiness.md`
 
-- [ ] **Step 1: Run full local verification**
+- [x] **Step 1: Run full local verification**
 
 Run:
 
@@ -884,7 +884,7 @@ npm run build
 
 Expected: all tests pass and `dist/` builds successfully.
 
-- [ ] **Step 2: Update README feature list**
+- [x] **Step 2: Update README feature list**
 
 Add these bullets under a `## 주요 기능` heading in `README.md`:
 
@@ -898,11 +898,11 @@ Add these bullets under a `## 주요 기능` heading in `README.md`:
 - CSV 다운로드와 인쇄를 통한 활동 결과 정리
 ```
 
-- [ ] **Step 3: Mark this plan's completed checkboxes**
+- [x] **Step 3: Mark this plan's completed checkboxes**
 
 Update this plan file so completed steps are marked with `- [x]`.
 
-- [ ] **Step 4: Commit final docs**
+- [x] **Step 4: Commit final docs**
 
 Run:
 
@@ -913,7 +913,7 @@ git commit -m "docs: document classroom readiness improvements"
 
 Expected: final documentation commit is created if there are documentation changes.
 
-- [ ] **Step 5: Report branch status**
+- [x] **Step 5: Report branch status**
 
 Run:
 
