@@ -192,6 +192,27 @@ test('updates remaining amount and percent used after adding a receipt', async (
 
   expect(screen.getByText('목표까지 4,000원 남았어요.')).toBeInTheDocument()
   expect(screen.getByText('60% 사용')).toBeInTheDocument()
+  expect(
+    screen.getByRole('progressbar', { name: '주간 목표 사용률' }),
+  ).toHaveAttribute('aria-valuenow', '60')
+})
+
+test('does not save a weekly goal when browser storage save fails', async () => {
+  const user = setupUser()
+
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    throw new DOMException('Storage quota exceeded', 'QuotaExceededError')
+  })
+
+  render(<App />)
+
+  await saveWeeklyGoal(user, '10000')
+
+  expect(screen.getByText('이번 주 목표 금액을 정해 보세요.')).toBeInTheDocument()
+  expect(screen.queryByText('목표까지 10,000원 남았어요.')).not.toBeInTheDocument()
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '브라우저 저장 공간 문제로 목표 금액을 저장하지 못했습니다.',
+  )
 })
 
 test('shows the weekly goal overage message', async () => {

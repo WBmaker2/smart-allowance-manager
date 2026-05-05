@@ -82,7 +82,16 @@ function WeeklyGoalCard({
       <div className="goal-status">
         <p>{message}</p>
         {status.hasGoal ? (
-          <p className="goal-progress">{status.percentUsed}% 사용</p>
+          <p
+            className="goal-progress"
+            role="progressbar"
+            aria-label="주간 목표 사용률"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={status.percentUsed}
+          >
+            {status.percentUsed}% 사용
+          </p>
         ) : (
           <p className="empty-text">
             목표 금액을 정하면 남은 금액을 볼 수 있어요.
